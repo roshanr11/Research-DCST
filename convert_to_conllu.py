@@ -16,4 +16,4 @@ with codecs.open(args.input, 'r', encoding='utf-8') as fin, codecs.open(args.out
             data[2] = token
             data[3] = 'PUNCT'
             data[8] = 'punct'
-            fout.write("\n")
+            fout.write( "\t".join(data) + "\n")
