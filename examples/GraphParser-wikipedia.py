@@ -99,6 +99,7 @@ def read_arguments():
         data_path = 'data/ud_pos_ner_dp'
     for split in args_dict['splits']:
         args_dict['data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain']
+    args_dict['data_paths']['wiki_path'] = args_dict['wiki_path'] # rram
 
     args_dict['alphabet_data_paths'] = {}
     for split in args_dict['splits']:
@@ -109,6 +110,17 @@ def read_arguments():
                 args_dict['alphabet_data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain'].split('_')[0]
             else:
                 args_dict['alphabet_data_paths'][split] = args_dict['data_paths'][split]
+
+    # rram
+    if args_dict['dataset'] == 'ontonotes':
+        args_dict['alphabet_data_paths']['wiki_path'] = args_dict['wiki_path'] + '_' + 'wiki_path' + '_' + 'all'
+    else:
+        if '_' in args_dict['domain']:
+            args_dict['alphabet_data_paths']['wiki_path'] = args_dict['wiki_path'] + '_' + 'wiki_path' + '_' + args_dict['domain'].split('_')[0]
+        else:
+            args_dict['alphabet_data_paths']['wiki_path'] = args_dict['data_paths']['wiki_path']
+    # rram
+
     args_dict['model_name'] = 'domain_' + args_dict['domain']
     args_dict['full_model_name'] = path.join(args_dict['model_path'],args_dict['model_name'])
     args_dict['load_path'] = args.load_path
@@ -492,6 +504,11 @@ def main():
         dataset = prepare_data.read_data_to_variable(args.data_paths[split], args.alphabets, args.device,
                                                      symbolic_root=True)
         datasets[split] = dataset
+
+    # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+    #                                                  symbolic_root=True) # rram
+    # datasets['wiki'] = dataset # rram 
+
     if args.set_num_training_samples is not None:
         print('Setting train and dev to %d samples' % args.set_num_training_samples)
         datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples)
@@ -581,7 +598,8 @@ def main():
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
-
+        # eval_dict = evaluation(args, datasets['wiki'], split, model, args.domain, epoch, 'best_results') # rram
+        # write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict) # rram
 
 if __name__ == '__main__':
     main()
