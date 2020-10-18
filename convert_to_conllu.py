@@ -11,7 +11,7 @@ with codecs.open(args.input, 'r', encoding='utf-8') as fin, codecs.open(args.out
         info = line.strip().split()
         for token_num, token in enumerate(info):
             data = ["_" for _ in range(10)]
-            data[0] = token_num
+            data[0] = str(token_num)
             data[1] = token
             data[2] = token
             data[3] = 'PUNCT'
