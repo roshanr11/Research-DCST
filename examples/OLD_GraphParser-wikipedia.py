@@ -71,7 +71,7 @@ def read_arguments():
     args_.add_argument('--char_embedding', choices=['random'], help='Embedding for characters',
                        required=True)
     args_.add_argument('--char_path', help='path for character embedding dict')
-    args_.add_argument('--wiki_path', help='WIKPEDIA DATA PATH [LTI RESEARCH]') # [rram]
+    args_.add_argument('--wiki_path', help='path for wikipedia data embedding') # [rram]
     args_.add_argument('--set_num_training_samples', type=int, help='downsampling training set to a fixed number of samples')
     args_.add_argument('--model_path', help='path for saving model file.', required=True)
     args_.add_argument('--load_path', help='path for loading saved source model file.', default=None)
@@ -93,22 +93,30 @@ def read_arguments():
     if not path.exists(args_dict['model_path']):
         makedirs(args_dict['model_path'])
     args_dict['data_paths'] = {}
+    # args_dict['wiki_paths'] = {} # [rram]
     if args_dict['dataset'] == 'ontonotes':
         data_path = 'data/onto_pos_ner_dp'
+        wiki_path = 'data/wiki-onto_pos_ner_dp' # what should I add here for wiki? [rram]
     else:
         data_path = 'data/ud_pos_ner_dp'
+        wiki_path = 'data/wiki-ud_pos_ner_dp' # what should I add here for wiki? [rram]
     for split in args_dict['splits']:
         args_dict['data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain']
+        args_dict['wiki_paths'][split] = wiki_path + '_' + split + '_' + args_dict['domain'] # [rram]
 
     args_dict['alphabet_data_paths'] = {}
+    args_dict['wiki-alphabet_data_paths'] = {} # [rram]
     for split in args_dict['splits']:
         if args_dict['dataset'] == 'ontonotes':
             args_dict['alphabet_data_paths'][split] = data_path + '_' + split + '_' + 'all'
+            args_dict['wiki-alphabet_data_paths'][split] = wiki_path + '_' + split + '_' + 'all' # [rram]
         else:
             if '_' in args_dict['domain']:
                 args_dict['alphabet_data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain'].split('_')[0]
+                args_dict['wiki-alphabet_data_paths'][split] = wiki_path + '_' + split + '_' + args_dict['domain'].split('_')[0] # [rram]
             else:
                 args_dict['alphabet_data_paths'][split] = args_dict['data_paths'][split]
+                args_dict['wiki-alphabet_data_paths'][split] = args_dict['wiki_paths'][split] # [rram]
     args_dict['model_name'] = 'domain_' + args_dict['domain']
     args_dict['full_model_name'] = path.join(args_dict['model_path'],args_dict['model_name'])
     args_dict['load_path'] = args.load_path
@@ -157,6 +165,7 @@ def read_arguments():
     args_dict['use_pos'] = args.use_pos
     args_dict['pos_dim'] = args.pos_dim
     args_dict['word_dict'] = None
+    args_dict['wiki_word_dict'] = None # [rram]
     args_dict['word_dim'] = args.word_dim
     if args_dict['word_embedding'] != 'random' and args_dict['word_path']:
         args_dict['word_dict'], args_dict['word_dim'] = load_word_embeddings.load_embedding_dict(args_dict['word_embedding'],
@@ -168,6 +177,7 @@ def read_arguments():
                                                                                                  args_dict['char_path'])
     args_dict['pos_dict'] = None
     args_dict['alphabet_path'] = path.join(args_dict['model_path'], 'alphabets' + '_src_domain_' + args_dict['domain'] + '/')
+    args_dict['wiki_alphabet_path'] = path.join(args_dict['model_path'], 'alphabets' + '_src_domain_' + args_dict['domain'] + '/') # [rram]
     args_dict['model_name'] = path.join(args_dict['model_path'], args_dict['model_name'])
     args_dict['eval_mode'] = args.eval_mode
     args_dict['device'] = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -177,27 +187,41 @@ def read_arguments():
     logger.info("Saving arguments to file")
     save_args(args, args_dict['full_model_name'])
     logger.info("Creating Alphabets")
-    alphabet_dict = creating_alphabets(args_dict['alphabet_path'], args_dict['alphabet_data_paths'], args_dict['word_dict'])
+    # [rram] NEED TO ADD extra argument for wiki_path here (below)
+    alphabet_dict = creating_alphabets(args_dict['alphabet_path'], args_dict['alphabet_data_paths'], args_dict['wiki-alphabet_data_paths'], args_dict['word_dict']) # rram
     args_dict = {**args_dict, **alphabet_dict}
     ARGS = namedtuple('ARGS', args_dict.keys())
     my_args = ARGS(**args_dict)
     return my_args
 
-
-def creating_alphabets(alphabet_path, alphabet_data_paths, word_dict):
+# [rram] added wiki_alphabet_data_paths argument
+def creating_alphabets(alphabet_path, alphabet_data_paths, wiki_alphabet_data_paths, word_dict):
     train_paths = alphabet_data_paths['train']
+    wiki_train_paths = wiki_alphabet_data_paths['train'] # [rram]
     extra_paths = [v for k,v in alphabet_data_paths.items() if k != 'train']
+    wiki_extra_paths = [v for k,v in alphabet_data_paths.items() if k != 'train'] # [rram]
     alphabet_dict = {}
+    wiki_alphabet_dict = {} # [rram]
     alphabet_dict['alphabets'] = prepare_data.create_alphabets(alphabet_path,
                                                                train_paths,
                                                                extra_paths=extra_paths,
                                                                max_vocabulary_size=100000,
                                                                embedd_dict=word_dict)
+    wiki_alphabet_dict['alphabets'] = prepare_data.create_alphabets(wiki_alphabet_paths,
+                                                            wiki_train_paths,
+                                                            extra_paths=wiki_extra_paths,
+                                                            max_vocabulary_size=100000,
+                                                            embedd_dict=word_dict) # [rram]
     for k, v in alphabet_dict['alphabets'].items():
         num_key = 'num_' + k.split('_')[0]
         alphabet_dict[num_key] = v.size()
         logger.info("%s : %d" % (num_key, alphabet_dict[num_key]))
-    return alphabet_dict
+
+    for k, v in wiki_alphabet_dict['alphabets'].items(): # [rram]
+        num_key = 'num_' + k.split('_')[0] # [rram]
+        wiki_alphabet_dict[num_key] = v.size() # [rram]
+        logger.info("%s : %d" % (num_key, wiki_alphabet_dict[num_key])) # [rram]
+    return alphabet_dict, wiki_alphabet_dict # used to be alphabet_dict only # [rram]
 
 def construct_embedding_table(alphabet, tokens_dict, dim, token_type='word'):
     if tokens_dict is None:
