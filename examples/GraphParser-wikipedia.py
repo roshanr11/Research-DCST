@@ -505,10 +505,6 @@ def main():
                                                      symbolic_root=True)
         datasets[split] = dataset
 
-    dataset = prepare_data.read_data_to_variable(args.data_paths['wiki_path'], args.alphabets, args.device, # rram
-                                                     symbolic_root=True) # rram
-    datasets['wiki_path'] = dataset # rram 
-
     if args.set_num_training_samples is not None:
         print('Setting train and dev to %d samples' % args.set_num_training_samples)
         datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples)
@@ -598,6 +594,11 @@ def main():
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
+
+        dataset = prepare_data.read_data_to_variable(args.data_paths['wiki_path'], args.alphabets, args.device, # rram
+                                                     symbolic_root=True) # rram
+        datasets['wiki_path'] = dataset # rram 
+        
         eval_dict = evaluation(args, datasets['wiki'], split, model, args.domain, epoch, 'best_results') # rram
         write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict) # rram
 
