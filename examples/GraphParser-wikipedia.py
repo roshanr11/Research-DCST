@@ -21,7 +21,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim import Adam, SGD
 import uuid
 
-uid = uuid.uuid4().hex[:6]
+uid = uuid.uuid4().hex[:6] 
 
 logger = get_logger('GraphParser')
 
