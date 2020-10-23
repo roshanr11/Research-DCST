@@ -598,8 +598,8 @@ def main():
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
-        # eval_dict = evaluation(args, datasets['wiki'], split, model, args.domain, epoch, 'best_results') # rram
-        # write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict) # rram
+        eval_dict = evaluation(args, datasets['wiki'], split, model, args.domain, epoch, 'best_results') # rram
+        write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict) # rram
 
 if __name__ == '__main__':
     main()
