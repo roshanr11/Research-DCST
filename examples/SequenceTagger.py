@@ -67,6 +67,7 @@ def read_arguments():
     args_.add_argument('--char_embedding', choices=['random'], help='Embedding for characters',
                        required=True)
     args_.add_argument('--char_path', help='path for character embedding dict')
+    args_.add_argument('--wiki_path', help='WIKPEDIA DATA PATH [LTI RESEARCH]') # [rram]
     args_.add_argument('--use_unlabeled_data', action='store_true', help='flag to use unlabeled data.')
     args_.add_argument('--use_labeled_data', action='store_true', help='flag to use labeled data.')
     args_.add_argument('--model_path', help='path for saving model file.', required=True)
@@ -77,6 +78,7 @@ def read_arguments():
     args_.add_argument('--eval_mode', action='store_true', help='evaluating model without training it')
     args = args_.parse_args()
     args_dict = {}
+    args_dict['wiki_path'] = args.wiki_path 
     args_dict['dataset'] = args.dataset
     args_dict['domain'] = args.domain
     args_dict['task'] = args.task
@@ -122,6 +124,17 @@ def read_arguments():
                 alphabet_data_paths[split] = data_path + '_' + split + '_' + args_dict['domain'].split('_')[0]
             else:
                 alphabet_data_paths[split] = args_dict['data_paths'][split]
+
+    # rram
+    if args_dict['dataset'] == 'ontonotes': 
+        alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
+    else:
+        if '_' in args_dict['domain']:
+            alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
+        else:
+            alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
+    # rram
+
     args_dict['alphabet_data_paths'] = alphabet_data_paths
     args_dict['num_epochs'] = args.num_epochs
     args_dict['batch_size'] = args.batch_size
@@ -412,6 +425,12 @@ def main():
                                                      symbolic_root=True)
         datasets[split] = dataset
 
+    # rram
+    dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device,
+                                                symbolic_root=True)
+    datasets['wiki_path'] = dataset 
+    #rram
+
     logger.info("Creating Networks")
     num_data = sum(datasets['train'][1])
     model, optimizer, dev_eval_dict, test_eval_dict, start_epoch = build_model_and_optimizer(args)
@@ -504,6 +523,7 @@ def main():
         epoch = start_epoch
         for split in ['train', 'dev', 'test']:
             evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
+        evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
 
 
 if __name__ == '__main__':
