@@ -461,7 +461,10 @@ def print_results(eval_dict, split, domain, str_res='results'):
 
 def write_results(args, data, data_domain, split, model, model_domain, eval_dict):
     str_file = args.full_model_name + '_' + split + '_model_domain_' + model_domain + '_data_domain_' + data_domain
+<<<<<<< HEAD
     print(str_file)
+=======
+>>>>>>> b5655d186c30020773aad3f77ff906c0cd59243e
     res_filename = str_file + '_res.txt'
     pred_filename = str_file + '_pred.txt'
     gold_filename = str_file + '_gold.txt'
@@ -601,7 +604,10 @@ def main():
         epoch = start_epoch
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
+<<<<<<< HEAD
             print(f'filename for {split}:') # rram
+=======
+>>>>>>> b5655d186c30020773aad3f77ff906c0cd59243e
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
 
         dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
