@@ -604,10 +604,7 @@ def main():
         epoch = start_epoch
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
-<<<<<<< HEAD
             print(f'filename for {split}:') # rram
-=======
->>>>>>> b5655d186c30020773aad3f77ff906c0cd59243e
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
 
         dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
