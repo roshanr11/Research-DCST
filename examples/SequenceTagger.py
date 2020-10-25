@@ -347,7 +347,7 @@ def evaluation(args, data, split, model, domain, epoch, str_res='results'):
     eval_dict['epoch'] = epoch
     pred_labels = []
     gold_labels = []
-    for batch in prepare_data.iterate_batch(data, args.batch_size, args.device):
+    for batch in prepare_data.iterate_batch(data, args.batch_size, args.device): # add debug statements here [rram] 
         word, char, pos, ner, heads, arc_tags, auto_label, masks, lengths = batch
         output, masks, lengths = model.forward(word, char, pos, mask=masks, length=lengths)
         auto_label_preds = model.decode(output, mask=masks, length=lengths, leading_symbolic=prepare_data.NUM_SYMBOLIC_TAGS)
