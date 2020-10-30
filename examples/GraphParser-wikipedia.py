@@ -373,15 +373,25 @@ def in_domain_evaluation(args, datasets, model, optimizer, dev_eval_dict, test_e
         if args.set_num_training_samples is not None:
             splits_to_write = datasets.keys()
         else:
-            splits_to_write = ['dev', 'test']
-        for split in splits_to_write:
+            splits_to_write = ['dev', 'test'] # rram - ['dev', 'test', 'wiki_path'] ?
+        for split in splits_to_write: 
             if split == 'dev':
                 eval_dict = dev_eval_dict['in_domain']
             elif split == 'test':
                 eval_dict = test_eval_dict['in_domain']
-            else:
+            else: # rram - elif split == 'wiki_path': eval_dict = test_eval_dict['in_domain'] ?
                 eval_dict = None
             write_results(args, datasets[split], args.domain, split, best_model, args.domain, eval_dict)
+
+        # rram
+        dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+                                                     symbolic_root=True) # rram
+        datasets['wiki_path'] = dataset # rram
+
+        eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, eval_dict) # rram
+        # rram
+
         print("Saving best model")
         save_checkpoint(best_model, best_optimizer, args.opt, dev_eval_dict, test_eval_dict, args.full_model_name)
 
@@ -461,10 +471,7 @@ def print_results(eval_dict, split, domain, str_res='results'):
 
 def write_results(args, data, data_domain, split, model, model_domain, eval_dict):
     str_file = args.full_model_name + '_' + split + '_model_domain_' + model_domain + '_data_domain_' + data_domain
-<<<<<<< HEAD
-    print(str_file)
-=======
->>>>>>> b5655d186c30020773aad3f77ff906c0cd59243e
+    print(f'writing {split} result to: {str_file}') # rram 
     res_filename = str_file + '_res.txt'
     pred_filename = str_file + '_pred.txt'
     gold_filename = str_file + '_gold.txt'
@@ -591,12 +598,17 @@ def main():
             print('\n')
         for split in datasets.keys():
             evaluation(args, datasets[split], split, best_model, args.domain, epoch, 'best_results')
+
         # rram
         dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
                                                 symbolic_root=True) # rram
         datasets['wiki_path'] = dataset # rram 
 
-        evaluation(args, datasets['wiki_path'], 'wiki_path', best_model, args.domain, epoch, 'best_results')
+        if args.set_num_training_samples is not None: # rram
+            print('Setting train and dev to %d samples' % args.set_num_training_samples) # rram
+            datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples) # rram
+
+        evaluation(args, datasets['wiki_path'], 'wiki_path', best_model, args.domain, epoch, 'best_results') # rram
         # rram
 
     else:
