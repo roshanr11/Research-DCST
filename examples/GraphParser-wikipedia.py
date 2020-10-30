@@ -388,8 +388,8 @@ def in_domain_evaluation(args, datasets, model, optimizer, dev_eval_dict, test_e
                                                      symbolic_root=True) # rram
         datasets['wiki_path'] = dataset # rram
 
-        eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
-        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, eval_dict) # rram
+        # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
         # rram
 
         print("Saving best model")
@@ -608,7 +608,7 @@ def main():
             print('Setting train and dev to %d samples' % args.set_num_training_samples) # rram
             datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples) # rram
 
-        evaluation(args, datasets['wiki_path'], 'wiki_path', best_model, args.domain, epoch, 'best_results') # rram
+        # evaluation(args, datasets['wiki_path'], 'wiki_path', best_model, args.domain, epoch, 'best_results') # rram
         # rram
 
     else:
@@ -623,8 +623,8 @@ def main():
                                                      symbolic_root=True) # rram
         datasets['wiki_path'] = dataset # rram 
 
-        eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
-        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, eval_dict) # rram
+        # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
 
 if __name__ == '__main__':
     main()

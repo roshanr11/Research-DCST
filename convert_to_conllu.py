@@ -7,7 +7,8 @@ parser.add_argument("--output", type=str)
 args = parser.parse_args()
 
 with codecs.open(args.input, 'r', encoding='utf-8') as fin, codecs.open(args.output, 'w', encoding='utf-8') as fout:
-    for line in fin:
+    for line_num, line in enumerate(fin):
+        if line_num == 100000: break 
         info = line.strip().split()
         for token_num, token in enumerate(info):
             data = ["_" for _ in range(10)]
