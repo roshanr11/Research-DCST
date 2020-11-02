@@ -21,7 +21,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim import Adam, SGD
 import uuid
 
-uid = uuid.uuid4().hex[:6] 
+uid = uuid.uuid4().hex[:6]
 
 logger = get_logger('GraphParser')
 
@@ -71,7 +71,7 @@ def read_arguments():
     args_.add_argument('--char_embedding', choices=['random'], help='Embedding for characters',
                        required=True)
     args_.add_argument('--char_path', help='path for character embedding dict')
-    args_.add_argument('--wiki_path', help='WIKPEDIA DATA PATH [LTI RESEARCH]') # [rram]
+    args_.add_argument('--wiki_path', help='WIKPEDIA DATA PATH [LTI RESEARCH]') # rram
     args_.add_argument('--set_num_training_samples', type=int, help='downsampling training set to a fixed number of samples')
     args_.add_argument('--model_path', help='path for saving model file.', required=True)
     args_.add_argument('--load_path', help='path for loading saved source model file.', default=None)
@@ -81,7 +81,7 @@ def read_arguments():
     args_.add_argument('--eval_mode', action='store_true', help='evaluating model without training it')
     args = args_.parse_args()
     args_dict = {}
-    args_dict['wiki_path'] = args.wiki_path # [rram]
+    args_dict['wiki_path'] = args.wiki_path # rram
     args_dict['dataset'] = args.dataset
     args_dict['domain'] = args.domain
     args_dict['rnn_mode'] = args.rnn_mode
@@ -99,7 +99,6 @@ def read_arguments():
         data_path = 'data/ud_pos_ner_dp'
     for split in args_dict['splits']:
         args_dict['data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain']
-    # args_dict['data_paths']['wiki_path'] = args.wiki_path # args_dict['wiki_path'] # rram
 
     args_dict['alphabet_data_paths'] = {}
     for split in args_dict['splits']:
@@ -110,17 +109,6 @@ def read_arguments():
                 args_dict['alphabet_data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain'].split('_')[0]
             else:
                 args_dict['alphabet_data_paths'][split] = args_dict['data_paths'][split]
-
-    # rram
-    # if args_dict['dataset'] == 'ontonotes':
-    #     args_dict['alphabet_data_paths']['wiki_path'] = args.wiki_path #args_dict['wiki_path'] #+ '_' + 'wiki_path' + '_' + 'all'
-    # else:
-    #     if '_' in args_dict['domain']:
-    #         args_dict['alphabet_data_paths']['wiki_path'] = args.wiki_path # args_dict['wiki_path'] #+ '_' + 'wiki_path' + '_' + args_dict['domain'].split('_')[0]
-    #     else:
-    #         args_dict['alphabet_data_paths']['wiki_path'] = args.wiki_path # args_dict['data_paths']['wiki_path']
-    # rram
-
     args_dict['model_name'] = 'domain_' + args_dict['domain']
     args_dict['full_model_name'] = path.join(args_dict['model_path'],args_dict['model_name'])
     args_dict['load_path'] = args.load_path
@@ -369,29 +357,26 @@ def in_domain_evaluation(args, datasets, model, optimizer, dev_eval_dict, test_e
     else:
         patient += 1
     if epoch == args.num_epochs:
+        # rram
+        wiki_tmp = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+                                                symbolic_root=True) # rram
+        write_results(args, wiki_tmp, args.domain, 'wiki_path', best_model, args.domain, None) # rram 
+        # rram
+
         # save in-domain checkpoint
         if args.set_num_training_samples is not None:
             splits_to_write = datasets.keys()
         else:
-            splits_to_write = ['dev', 'test'] # rram - ['dev', 'test', 'wiki_path'] ?
-        for split in splits_to_write: 
+            splits_to_write = ['dev', 'test']
+        for split in splits_to_write:
             if split == 'dev':
                 eval_dict = dev_eval_dict['in_domain']
             elif split == 'test':
                 eval_dict = test_eval_dict['in_domain']
-            else: # rram - elif split == 'wiki_path': eval_dict = test_eval_dict['in_domain'] ?
+            else:
                 eval_dict = None
+            print('in_domain evaluation results\n') # rram
             write_results(args, datasets[split], args.domain, split, best_model, args.domain, eval_dict)
-
-        # rram
-        # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
-        #                                              symbolic_root=True) # rram
-        # datasets['wiki_path'] = dataset # rram
-
-        # # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
-        # write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
-        # rram
-
         print("Saving best model")
         save_checkpoint(best_model, best_optimizer, args.opt, dev_eval_dict, test_eval_dict, args.full_model_name)
 
@@ -471,10 +456,10 @@ def print_results(eval_dict, split, domain, str_res='results'):
 
 def write_results(args, data, data_domain, split, model, model_domain, eval_dict):
     str_file = args.full_model_name + '_' + split + '_model_domain_' + model_domain + '_data_domain_' + data_domain
-    print(f'writing {split} result to: {str_file}') # rram 
     res_filename = str_file + '_res.txt'
     pred_filename = str_file + '_pred.txt'
     gold_filename = str_file + '_gold.txt'
+    print(f'writing {split} result to: {str_file}_[res,pred,gold].txt') # rram 
     if eval_dict is not None:
         # save results dictionary into a file
         with open(res_filename, 'w') as f:
@@ -515,10 +500,19 @@ def main():
         dataset = prepare_data.read_data_to_variable(args.data_paths[split], args.alphabets, args.device,
                                                      symbolic_root=True)
         datasets[split] = dataset
-
     if args.set_num_training_samples is not None:
         print('Setting train and dev to %d samples' % args.set_num_training_samples)
         datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples)
+
+    # rram
+    # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+    #                                             symbolic_root=True) # rram
+    # datasets['wiki_path'] = dataset # rram 
+
+    # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+    # write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
+    # rram 
+
     logger.info("Creating Networks")
     num_data = sum(datasets['train'][1])
     model, optimizer, dev_eval_dict, test_eval_dict, start_epoch = build_model_and_optimizer(args)
@@ -588,6 +582,12 @@ def main():
                   (batch_num, num_batches, args.domain, total_loss / total_train_inst, total_arc_loss / total_train_inst,
                    total_arc_tag_loss / total_train_inst, time.time() - start_time))
 
+            # rram - to feed into in_domain_evaluation, bc that's where the writing is done apparently
+            # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+            #                                             symbolic_root=True) # rram
+            # datasets['wiki_path'] = dataset # rram 
+            # rram 
+
             dev_eval_dict, test_eval_dict, best_model, best_optimizer, patient = in_domain_evaluation(args, datasets, model, optimizer, dev_eval_dict, test_eval_dict, epoch, best_model, best_optimizer, patient)
             if patient >= args.schedule:
                 lr = args.learning_rate / (1.0 + epoch * args.decay_rate)
@@ -597,35 +597,23 @@ def main():
             print_results(test_eval_dict['in_domain'], 'test', args.domain, 'best_results')
             print('\n')
         for split in datasets.keys():
-            if split != 'wiki_path': # rram 
-                evaluation(args, datasets[split], split, best_model, args.domain, epoch, 'best_results')
-
-        # rram
-        # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
-        #                                         symbolic_root=True) # rram
-        # datasets['wiki_path'] = dataset # rram 
-
-        # if args.set_num_training_samples is not None: # rram
-        #     print('Setting train and dev to %d samples' % args.set_num_training_samples) # rram
-        #     datasets = rearrange_splits.rearranging_splits(datasets, args.set_num_training_samples) # rram
-
-        # evaluation(args, datasets['wiki_path'], 'wiki_path', best_model, args.domain, epoch, 'best_results') # rram
-        # rram
+            evaluation(args, datasets[split], split, best_model, args.domain, epoch, 'best_results')
 
     else:
         logger.info("Evaluating")
         epoch = start_epoch
         for split in ['train', 'dev', 'test']:
             eval_dict = evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
-            print(f'filename for {split}:') # rram
             write_results(args, datasets[split], args.domain, split, model, args.domain, eval_dict)
 
-        dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
-                                                     symbolic_root=True) # rram
-        datasets['wiki_path'] = dataset # rram 
+        # rram
+        # dataset = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+        #                                              symbolic_root=True) # rram
+        # datasets['wiki_path'] = dataset # rram 
 
-        # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
-        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
+        # # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+        # write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
+        # rram
 
 if __name__ == '__main__':
     main()
