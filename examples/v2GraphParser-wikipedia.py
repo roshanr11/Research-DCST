@@ -466,6 +466,7 @@ def write_results(args, data, data_domain, split, model, model_domain, eval_dict
     pred_filename = str_file + '_pred.txt'
     gold_filename = str_file + '_gold.txt'
     print(f'writing {split} result to: {str_file}_[res,pred,gold].txt') # rram 
+    
     if eval_dict is not None:
         # save results dictionary into a file
         with open(res_filename, 'w') as f:
@@ -618,7 +619,7 @@ def main():
         # datasets['wiki_path'] = dataset # rram 
 
         # # eval_dict = evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
-        # write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
+        write_results(args, datasets['wiki_path'], args.domain, 'wiki_path', model, args.domain, None) # rram
         # rram
 
 if __name__ == '__main__':

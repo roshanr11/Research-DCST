@@ -126,13 +126,7 @@ def read_arguments():
                 alphabet_data_paths[split] = args_dict['data_paths'][split]
 
     # rram
-    if args_dict['dataset'] == 'ontonotes': 
-        alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
-    else:
-        if '_' in args_dict['domain']:
-            alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
-        else:
-            alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
+    alphabet_data_paths['wiki_path'] = args_dict['wiki_path']
     # rram
 
     args_dict['alphabet_data_paths'] = alphabet_data_paths
@@ -329,6 +323,12 @@ def in_domain_evaluation(args, datasets, model, optimizer, dev_eval_dict, test_e
     else:
         patient += 1
     if epoch == args.num_epochs:
+        # rram
+        wiki_tmp = prepare_data.read_data_to_variable(args.wiki_path, args.alphabets, args.device, # rram
+                                                symbolic_root=True) # rram
+        write_results(args, wiki_tmp, args.domain, 'wiki_path', best_model, args.domain, None) # rram 
+        # rram
+
         # save in-domain checkpoint
         for split in ['dev', 'test']:
             eval_dict = dev_eval_dict['in_domain'] if split == 'dev' else test_eval_dict['in_domain']
@@ -385,7 +385,8 @@ def write_results(args, data, data_domain, split, model, model_domain, eval_dict
     res_filename = str_file + '_res.txt'
     pred_filename = str_file + '_pred.txt'
     gold_filename = str_file + '_gold.txt'
-
+    print(f'writing {split} result to: {str_file}_[res,pred,gold].txt') # rram
+    
     # save results dictionary into a file
     with open(res_filename, 'w') as f:
         json.dump(eval_dict, f)
@@ -523,7 +524,7 @@ def main():
         epoch = start_epoch
         for split in ['train', 'dev', 'test']:
             evaluation(args, datasets[split], split, model, args.domain, epoch, 'best_results')
-        evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
+        # evaluation(args, datasets['wiki_path'], 'wiki_path', model, args.domain, epoch, 'best_results') # rram
 
 
 if __name__ == '__main__':
