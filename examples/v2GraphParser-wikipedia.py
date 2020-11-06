@@ -199,10 +199,21 @@ def creating_alphabets(alphabet_path, alphabet_data_paths, word_dict):
                                                                extra_paths=extra_paths,
                                                                max_vocabulary_size=100000,
                                                                embedd_dict=word_dict)
+    print(alphabet_dict['alphabets']) # rram - debugging
+    fout = open('debug_alphabets.txt', 'w') # rram - debugging
+    print('WRITING alphabets TO DEBUG_ALPHABETS.txt') # rram - debugging
+
     for k, v in alphabet_dict['alphabets'].items():
+        
+        # print(k, v.get_content()) # rram - debugging
+        fout.write(f'({k}, {v.get_content()})\n') # rram - debugging 
+
         num_key = 'num_' + k.split('_')[0]
         alphabet_dict[num_key] = v.size()
         logger.info("%s : %d" % (num_key, alphabet_dict[num_key]))
+
+    fout.close() # rram - debugging
+
     return alphabet_dict
 
 def construct_embedding_table(alphabet, tokens_dict, dim, token_type='word'):
