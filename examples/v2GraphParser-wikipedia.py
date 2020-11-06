@@ -109,6 +109,12 @@ def read_arguments():
                 args_dict['alphabet_data_paths'][split] = data_path + '_' + split + '_' + args_dict['domain'].split('_')[0]
             else:
                 args_dict['alphabet_data_paths'][split] = args_dict['data_paths'][split]
+
+    # rram
+    args_dict['alphabet_data_paths']['wiki_path'] = args.wiki_path 
+    # rram
+
+
     args_dict['model_name'] = 'domain_' + args_dict['domain']
     args_dict['full_model_name'] = path.join(args_dict['model_path'],args_dict['model_name'])
     args_dict['load_path'] = args.load_path
