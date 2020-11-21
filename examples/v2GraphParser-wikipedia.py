@@ -197,7 +197,7 @@ def creating_alphabets(alphabet_path, alphabet_data_paths, word_dict):
     alphabet_dict['alphabets'] = prepare_data.create_alphabets(alphabet_path,
                                                                train_paths,
                                                                extra_paths=extra_paths,
-                                                               max_vocabulary_size=100000,
+                                                               max_vocabulary_size=300000, # rram 100K -> 300K or 400K
                                                                embedd_dict=word_dict)
     print(alphabet_dict['alphabets']) # rram - debugging
     fout = open('debug_alphabets.txt', 'w') # rram - debugging
